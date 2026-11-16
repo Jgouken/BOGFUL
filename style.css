@@ -4,8 +4,8 @@ html {
 
 .block-container {
     background-color: grey;
-    height: 80vh;
-    width: 80vh;
+    max-height: 80vh;
+    max-width: 80vh;
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 40px;
@@ -13,12 +13,8 @@ html {
     border-radius: 6px;
 }
 
-.selected {
-    border: 20px solid blue;
-}
-
 .block {
-    background-color: #141414;
+    background-color: rgb(58, 58, 58);
     color: white;
     font-family: sans-serif;
     font-size: 2.5rem;
@@ -31,4 +27,8 @@ html {
     -ms-user-select: none;     
     user-select: none;  
     cursor: pointer;  
+}
+
+.selected {
+    background-color: blue;
 }

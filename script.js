@@ -45,34 +45,45 @@ for (let i = 0; i < length * width; i++) {
     container.appendChild(clone);
 
     item.addEventListener('pointerdown', (e) => {
-        console.log(`Pointer Down on ${tile.letter}`);
-        currentWord.add(tile);
         isDragging = true;
-        updateBorders()
+        toggleSelection(tile)
     });
 
     item.addEventListener('pointerenter', (e) => {
-        if (isDragging) {
-            if (currentWord.has(tile)) {
-                if ([...currentWord].at(-1) === tile) {
-                    console.log(`Removed ${tile.letter}`);
-                    currentWord.delete(tile);
-                }
-            } else {
-                console.log(`Pointer Enter on ${tile.letter}`);
-                currentWord.add(tile);
-            }
-            updateBorders()
-        }
+        if (isDragging) toggleSelection(tile)
     });
 }
 
 window.addEventListener('pointerup', () => {
     isDragging = false;
-    console.log([...currentWord].map(block => block.letter).join(''))
+    let word = [...currentWord].map(block => block.letter).join('').toLocaleUpperCase()
+    if (word.length < 2) return clearSelection();
+    submitWord(word)
+});
+
+function toggleSelection(tile) {
+    if (currentWord.has(tile)) {
+        if ([...currentWord].at(-1) === tile) {
+            console.log(`Removed ${tile.letter.toLocaleUpperCase()}`);
+            currentWord.delete(tile);
+        }
+    } else {
+        console.log(`Added ${tile.letter.toLocaleUpperCase()}`);
+        currentWord.add(tile);
+    }
+
+    updateBorders()
+}
+
+function submitWord(word) {
+    console.log(word)
+    clearSelection()
+}
+
+function clearSelection() {
     currentWord.clear();
     updateBorders()
-});
+}
 
 function updateBorders() {
     const activeIndices = new Set([...currentWord].map(tile => tile.index));
