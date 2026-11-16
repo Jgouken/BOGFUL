@@ -50,7 +50,8 @@ for (let i = 0; i < length * width; i++) {
     });
 
     item.addEventListener('pointerenter', (e) => {
-        if (isDragging) toggleSelection(tile)
+        let lastTile = [...currentWord].at(-1)
+        if (isDragging && isAdjacent(tile, lastTile)) toggleSelection(tile)
     });
 }
 
@@ -63,7 +64,7 @@ window.addEventListener('pointerup', () => {
 
 function toggleSelection(tile) {
     if (currentWord.has(tile)) {
-        if ([...currentWord].at(-1) === tile) {
+        if ([...currentWord].at(-2) === tile) {
             console.log(`Removed ${tile.letter.toLocaleUpperCase()}`);
             currentWord.delete(tile);
         }
@@ -73,6 +74,21 @@ function toggleSelection(tile) {
     }
 
     updateBorders()
+}
+
+function getTile(index) {
+    
+}
+
+function isAdjacent(tile1, tile2) {
+    // Turn into 0 indexed coords
+    let tile1coord = [Math.floor(tile1.index / length), Math.floor(tile1.index % width)]
+    let tile2coord = [Math.floor(tile2.index / length), Math.floor(tile2.index % width)]
+
+    if (tile1coord == tile2coord) return false;
+    if (Math.abs(tile2coord[0] - tile1coord[0]) <= 1 && Math.abs(tile2coord[1] - tile1coord[1]) <= 1) return true;
+
+    return false;
 }
 
 function submitWord(word) {
