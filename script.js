@@ -1,20 +1,17 @@
-const container = document.getElementById('block-container');
+const container = document.getElementById('block-container') || document.querySelector('.block-container');
 const template = document.getElementById('block-template');
-
-var wordSet = null;
-
-async function loadDictionary() {
-    const response = await fetch('./words.txt');
-    const text = await response.text();
-
-    const words = text.split(/\r?\n/);
-    wordSet = new Set(words.map(w => w.trim().toLowerCase()).filter(Boolean));
-}
-
-loadDictionary();
-
 const length = 4;
 const width = 4;
+
+const svgNS = "http://www.w3.org/2000/svg";
+const svgOverlay = document.createElementNS(svgNS, "svg");
+svgOverlay.classList.add("drag-line-overlay");
+
+const dragLine = document.createElementNS(svgNS, "polyline");
+dragLine.classList.add("drag-line");
+
+svgOverlay.appendChild(dragLine);
+
 const letters = [
     { letter: "A", value: 1 },
     { letter: "B", value: 3 },
@@ -42,67 +39,129 @@ const letters = [
     { letter: "X", value: 8 },
     { letter: "Y", value: 4 },
     { letter: "Z", value: 10 }
-]
+];
 
+const letterBagValues = [
+    { letter: "E", amount: 11, letterIndex: 4 },
+    { letter: "T", amount: 9, letterIndex: 19 },
+    { letter: "O", amount: 7, letterIndex: 14 },
+    { letter: "A", amount: 6, letterIndex: 0 },
+    { letter: "I", amount: 6, letterIndex: 8 },
+    { letter: "N", amount: 6, letterIndex: 13 },
+    { letter: "S", amount: 6, letterIndex: 18 },
+    { letter: "H", amount: 5, letterIndex: 7 },
+    { letter: "R", amount: 5, letterIndex: 17 },
+    { letter: "L", amount: 4, letterIndex: 11 },
+    { letter: "D", amount: 3, letterIndex: 3 },
+    { letter: "U", amount: 3, letterIndex: 20 },
+    { letter: "W", amount: 3, letterIndex: 22 },
+    { letter: "Y", amount: 3, letterIndex: 24 },
+    { letter: "B", amount: 2, letterIndex: 1 },
+    { letter: "C", amount: 2, letterIndex: 2 },
+    { letter: "F", amount: 2, letterIndex: 5 },
+    { letter: "G", amount: 2, letterIndex: 6 },
+    { letter: "M", amount: 2, letterIndex: 12 },
+    { letter: "P", amount: 2, letterIndex: 15 },
+    { letter: "V", amount: 2, letterIndex: 21 },
+    { letter: "J", amount: 1, letterIndex: 9 },
+    { letter: "K", amount: 1, letterIndex: 10 },
+    { letter: "Qu", amount: 1, letterIndex: 16 },
+    { letter: "X", amount: 1, letterIndex: 23 },
+    { letter: "Z", amount: 1, letterIndex: 25 }
+];
+
+var letterBag = [];
+var wordSet = null;
+var pointerPos = null;
 var isDragging = false;
 var currentWord = new Set();
 var board = [];
 
+async function loadDictionary() {
+    const response = await fetch('./words.txt');
+    const text = await response.text();
+
+    const words = text.split(/\r?\n/);
+    wordSet = new Set(words.map(w => w.trim().toLowerCase()).filter(Boolean));
+}
+
+function setLetterBag() {
+    letterBag = [];
+    letterBagValues.forEach((lbv) => {
+        for (let i = 0; i < lbv.amount; i++) {
+            letterBag.push(letters[lbv.letterIndex]);
+        }
+    });
+}
+
+loadDictionary();
+setLetterBag();
+
 for (let i = 0; i < length * width; i++) {
     const clone = template.content.cloneNode(true);
     const item = clone.firstElementChild;
-    let randomLetter = letters[Math.floor(Math.random() * letters.length)];
-    const tile = { ...randomLetter, index: i };
+
+    let randomLetter = letterBag[Math.floor(Math.random() * letterBag.length)];
+    const tile = { ...randomLetter, index: i, element: item };
 
     item.querySelector('.block-text').textContent = tile.letter;
     container.appendChild(clone);
 
     item.addEventListener('pointerdown', (e) => {
+        if (item.hasPointerCapture(e.pointerId)) {
+            item.releasePointerCapture(e.pointerId);
+        }
         isDragging = true;
-        toggleSelection(tile)
+        updatePointerPos(e);
+        toggleSelection(tile);
     });
 
     item.addEventListener('pointerenter', (e) => {
-        let lastTile = [...currentWord].at(-1)
-        if (isDragging && isAdjacent(tile, lastTile)) toggleSelection(tile)
+        let lastTile = [...currentWord].at(-1);
+        if (isDragging && isAdjacent(tile, lastTile)) {
+            toggleSelection(tile);
+        }
     });
 
-    board.push(tile)
+    board.push(tile);
 }
 
+container.appendChild(svgOverlay);
+
 window.addEventListener('pointerup', () => {
+    if (!isDragging) return;
     isDragging = false;
-    let word = [...currentWord].map(block => block.letter).join('').toLocaleUpperCase()
+    pointerPos = null;
+
+    let word = [...currentWord].map(block => block.letter).join('').toLocaleUpperCase();
     if (word.length < 2) return clearSelection();
-    submitWord(word)
+    submitWord(word);
 });
 
 function toggleSelection(tile) {
     if (currentWord.has(tile)) {
-        let secondLastTile = [...currentWord].at(-2)
-        let lastTile = [...currentWord].at(-1)
+        let secondLastTile = [...currentWord].at(-2);
+        let lastTile = [...currentWord].at(-1);
         if (secondLastTile === tile) {
-            console.log(board)
-            console.log(`Removed ${board[board.indexOf(lastTile)].letter.toLocaleUpperCase()}`);
-            currentWord.delete(board[board.indexOf(lastTile)]);
+            currentWord.delete(lastTile);
         }
     } else {
-        console.log(`Added ${tile.letter.toLocaleUpperCase()}`);
         currentWord.add(tile);
     }
 
-    updateBorders()
+    updateBorders();
+    updateVectorLine();
 }
 
 function isAdjacent(tile1, tile2) {
-    // Turn into 0 indexed coords
-    let tile1coord = [Math.floor(tile1.index / length), Math.floor(tile1.index % width)]
-    let tile2coord = [Math.floor(tile2.index / length), Math.floor(tile2.index % width)]
+    if (!tile1 || !tile2) return false;
+    let r1 = Math.floor(tile1.index / length);
+    let c1 = tile1.index % width;
+    let r2 = Math.floor(tile2.index / length);
+    let c2 = tile2.index % width;
 
-    if (tile1coord == tile2coord) return false;
-    if (Math.abs(tile2coord[0] - tile1coord[0]) <= 1 && Math.abs(tile2coord[1] - tile1coord[1]) <= 1) return true;
-
-    return false;
+    if (r1 === r2 && c1 === c2) return false;
+    return Math.abs(r2 - r1) <= 1 && Math.abs(c2 - c1) <= 1;
 }
 
 function isValidWord(word) {
@@ -116,18 +175,56 @@ function submitWord(word) {
     } else {
         console.log(`Invalid word: ${word}`);
     }
-    clearSelection()
+    clearSelection();
 }
 
 function clearSelection() {
     currentWord.clear();
-    updateBorders()
+    updateBorders();
+    updateVectorLine();
 }
 
 function updateBorders() {
-    const activeIndices = new Set([...currentWord].map(tile => tile.index));
-    for (let i = 0; i < container.children.length; i++) {
-        const block = container.children[i];
-        block.classList.toggle('selected', activeIndices.has(i));
+    board.forEach(tile => {
+        tile.element.classList.toggle('selected', currentWord.has(tile));
+    });
+}
+
+window.addEventListener('pointermove', (e) => {
+    if (!isDragging) return;
+    updatePointerPos(e);
+    updateVectorLine();
+});
+
+function updatePointerPos(e) {
+    const rect = container.getBoundingClientRect();
+    pointerPos = {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+    };
+}
+
+function updateVectorLine() {
+    if (currentWord.size === 0) {
+        dragLine.setAttribute("points", "");
+        return;
     }
+
+    const containerRect = container.getBoundingClientRect();
+    svgOverlay.setAttribute("width", containerRect.width);
+    svgOverlay.setAttribute("height", containerRect.height);
+    svgOverlay.setAttribute("viewBox", `0 0 ${containerRect.width} ${containerRect.height}`);
+
+    const points = [...currentWord].map(tile => {
+        const blockRect = tile.element.getBoundingClientRect();
+        const centerX = (blockRect.left - containerRect.left) + (blockRect.width / 2);
+        const centerY = (blockRect.top - containerRect.top) + (blockRect.height / 2);
+        return `${centerX},${centerY}`;
+    });
+
+    if (isDragging && pointerPos) {
+        points.push(`${pointerPos.x},${pointerPos.y}`);
+    }
+
+    dragLine.setAttribute("points", points.join(" "));
 }
