@@ -174,13 +174,27 @@ function isValidWord(word) {
 function submitWord(word) {
     if (isValidWord(word)) {
         console.log(`Valid word: ${word}`);
+        board.forEach(tile => {
+            if (currentWord.has(tile)) tile.element.style.backgroundColor = "rgb(0, 112, 6)";
+        });
+
     } else {
         console.log(`Invalid word: ${word}`);
+        board.forEach(tile => {
+            if (currentWord.has(tile)) tile.element.style.backgroundColor = "rgb(100, 0, 0)";
+            
+        });
     }
+
     clearSelection();
 }
 
 function clearSelection() {
+    setTimeout(() => {
+        board.forEach(tile => {
+            tile.element.style.backgroundColor = "rgb(58, 58, 58)";
+        });
+    }, 250)
     currentWord.clear();
     updateBorders();
     updateVectorLine();
