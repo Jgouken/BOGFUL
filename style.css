@@ -11,6 +11,7 @@ html {
     gap: 40px;
     margin: 20px auto;
     border-radius: 6px;
+    padding: 40px;
 }
 
 .block {

@@ -34,6 +34,7 @@ const letters = [
 
 var isDragging = false;
 var currentWord = new Set();
+var board = [];
 
 for (let i = 0; i < length * width; i++) {
     const clone = template.content.cloneNode(true);
@@ -53,6 +54,8 @@ for (let i = 0; i < length * width; i++) {
         let lastTile = [...currentWord].at(-1)
         if (isDragging && isAdjacent(tile, lastTile)) toggleSelection(tile)
     });
+
+    board.push(tile)
 }
 
 window.addEventListener('pointerup', () => {
@@ -64,9 +67,12 @@ window.addEventListener('pointerup', () => {
 
 function toggleSelection(tile) {
     if (currentWord.has(tile)) {
-        if ([...currentWord].at(-2) === tile) {
-            console.log(`Removed ${tile.letter.toLocaleUpperCase()}`);
-            currentWord.delete(tile);
+        let = secondLastTile = [...currentWord].at(-2)
+        let = lastTile = [...currentWord].at(-1)
+        if (secondLastTile === tile) {
+            console.log(board)
+            console.log(`Removed ${board[board.indexOf(lastTile)].letter.toLocaleUpperCase()}`);
+            currentWord.delete(board[board.indexOf(lastTile)]);
         }
     } else {
         console.log(`Added ${tile.letter.toLocaleUpperCase()}`);
@@ -74,10 +80,6 @@ function toggleSelection(tile) {
     }
 
     updateBorders()
-}
-
-function getTile(index) {
-    
 }
 
 function isAdjacent(tile1, tile2) {
