@@ -1,6 +1,18 @@
 const container = document.getElementById('block-container');
 const template = document.getElementById('block-template');
 
+var wordSet = null;
+
+async function loadDictionary() {
+    const response = await fetch('./words.txt');
+    const text = await response.text();
+
+    const words = text.split(/\r?\n/);
+    wordSet = new Set(words.map(w => w.trim().toLowerCase()).filter(Boolean));
+}
+
+loadDictionary();
+
 const length = 4;
 const width = 4;
 const letters = [
@@ -67,8 +79,8 @@ window.addEventListener('pointerup', () => {
 
 function toggleSelection(tile) {
     if (currentWord.has(tile)) {
-        let = secondLastTile = [...currentWord].at(-2)
-        let = lastTile = [...currentWord].at(-1)
+        let secondLastTile = [...currentWord].at(-2)
+        let lastTile = [...currentWord].at(-1)
         if (secondLastTile === tile) {
             console.log(board)
             console.log(`Removed ${board[board.indexOf(lastTile)].letter.toLocaleUpperCase()}`);
@@ -93,8 +105,17 @@ function isAdjacent(tile1, tile2) {
     return false;
 }
 
+function isValidWord(word) {
+    if (!wordSet) return false;
+    return wordSet.has(word.trim().toLowerCase());
+}
+
 function submitWord(word) {
-    console.log(word)
+    if (isValidWord(word)) {
+        console.log(`Valid word: ${word}`);
+    } else {
+        console.log(`Invalid word: ${word}`);
+    }
     clearSelection()
 }
 
