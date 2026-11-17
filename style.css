@@ -33,10 +33,6 @@ html {
     cursor: pointer;
 }
 
-.selected {
-    background-color: blue;
-}
-
 .drag-line-overlay {
     position: absolute;
     top: 0;
@@ -53,4 +49,88 @@ html {
     stroke-width: 6;
     stroke-linecap: round;
     stroke-linejoin: round;
+}
+
+.topbutton {
+    position: relative;
+    transform: none;
+    z-index: 30;
+}
+
+.redraw {
+    padding: 0.75rem 1.25rem;
+    font-size: 1rem;
+    background: darkred;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    box-shadow: 0 8px 24px rgba(2, 6, 23, 0.2);
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+}
+
+.find-set {
+    padding: 0.75rem 1.25rem;
+    font-size: 1rem;
+    background: darkgreen;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    box-shadow: 0 8px 24px rgba(2, 6, 23, 0.2);
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+}
+
+.show-hint {
+    padding: 0.75rem 1.25rem;
+    font-size: 1rem;
+    background: rgb(76, 0, 175);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    box-shadow: 0 8px 24px rgba(2, 6, 23, 0.2);
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+}
+
+.darkmode,
+.mutemode,
+.showrules {
+    padding: 0.75rem 1.25rem;
+    font-size: 1rem;
+    background: #333333;
+    cursor: pointer;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    box-shadow: 0 8px 24px rgba(2, 6, 23, 0.2);
+    transition: all 0.5s ease-in-out;
+}
+
+.centered-buttons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 20px auto;
+    width: 100%;
+}
+
+.word-display {
+    border: 1px solid #ccc;
+    min-height: 40px;
+    min-width: 275px;
+    padding: 0rem 1.25rem;
+    color: white;
+    font-family: sans-serif;
+    font-size: 1.5rem;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.selected {
+    background-color: blue !important;
 }

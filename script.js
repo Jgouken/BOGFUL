@@ -134,7 +134,7 @@ window.addEventListener('pointerup', () => {
     pointerPos = null;
 
     let word = [...currentWord].map(block => block.letter).join('').toLocaleUpperCase();
-    if (word.length < 2) return clearSelection();
+    if (word.length < 3) return clearSelection();
     submitWord(word);
 });
 
@@ -149,6 +149,8 @@ function toggleSelection(tile) {
         currentWord.add(tile);
     }
 
+    let word = [...currentWord].map(block => block.letter).join(' ').toLocaleUpperCase();
+    document.getElementById("word-display").innerText = word
     updateBorders();
     updateVectorLine();
 }
@@ -182,6 +184,7 @@ function clearSelection() {
     currentWord.clear();
     updateBorders();
     updateVectorLine();
+    document.getElementById("word-display").innerText = ""
 }
 
 function updateBorders() {
