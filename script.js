@@ -1,16 +1,25 @@
 const container = document.getElementById('block-container') || document.querySelector('.block-container');
 const template = document.getElementById('block-template');
+const wordList = document.getElementById('wordList');
 const length = 4;
 const width = 4;
 
 const svgNS = "http://www.w3.org/2000/svg";
 const svgOverlay = document.createElementNS(svgNS, "svg");
 svgOverlay.classList.add("drag-line-overlay");
-
 const dragLine = document.createElementNS(svgNS, "polyline");
 dragLine.classList.add("drag-line");
-
 svgOverlay.appendChild(dragLine);
+
+const drawer = document.getElementById('rightDrawer');
+document.getElementById('openDrawer').addEventListener('click', () => {
+    if (drawer.open) {
+        drawer.close();
+    } else {
+        drawer.show();
+    }
+});
+document.getElementById('closeDrawer').addEventListener('click', () => drawer.close());
 
 const letters = [
     { letter: "A", value: 1 },
@@ -75,6 +84,10 @@ var wordSet = null;
 var pointerPos = null;
 var isDragging = false;
 var currentWord = new Set();
+var book = new Set();
+var wordEntries = new Map();
+var wordPreviewTimer = null;
+var previewTiles = [];
 var board = [];
 
 async function loadDictionary() {
@@ -134,7 +147,10 @@ window.addEventListener('pointerup', () => {
     pointerPos = null;
 
     let word = [...currentWord].map(block => block.letter).join('').toLocaleUpperCase();
-    if (word.length < 3) return clearSelection();
+    if (word.length < 3) {
+        clearSelection();
+        return;
+    }
     submitWord(word);
 });
 
@@ -172,18 +188,34 @@ function isValidWord(word) {
 }
 
 function submitWord(word) {
-    if (isValidWord(word)) {
+    let wordArray = [...currentWord]
+    let score = wordArray.reduce((sum, letter) => sum + letter.value, 0);
+    let bookObject = {
+        letters: wordArray,
+        word,
+        score
+    }
+
+    if (book.has(JSON.stringify(bookObject))) {
+        console.log(`Duplicate word path: ${word}`);
+        board.forEach(tile => {
+            if (currentWord.has(tile)) tile.element.style.backgroundColor = "rgb(100, 93, 0)";
+        });
+        document.getElementById("word-display").innerText = `${word} 🔁`;
+    } else if (isValidWord(word)) {
         console.log(`Valid word: ${word}`);
         board.forEach(tile => {
             if (currentWord.has(tile)) tile.element.style.backgroundColor = "rgb(0, 112, 6)";
         });
-
+        document.getElementById("word-display").innerText = `${word} ✅`
+        addWordToBook(bookObject);
+        book.add(JSON.stringify(bookObject));
     } else {
         console.log(`Invalid word: ${word}`);
         board.forEach(tile => {
             if (currentWord.has(tile)) tile.element.style.backgroundColor = "rgb(100, 0, 0)";
-            
         });
+        document.getElementById("word-display").innerText = `${word} ❌`
     }
 
     clearSelection();
@@ -192,13 +224,12 @@ function submitWord(word) {
 function clearSelection() {
     setTimeout(() => {
         board.forEach(tile => {
-            tile.element.style.backgroundColor = "rgb(58, 58, 58)";
+            tile.element.style.backgroundColor = "var(--no-streak)";
         });
     }, 250)
     currentWord.clear();
     updateBorders();
     updateVectorLine();
-    document.getElementById("word-display").innerText = ""
 }
 
 function updateBorders() {
@@ -221,8 +252,8 @@ function updatePointerPos(e) {
     };
 }
 
-function updateVectorLine() {
-    if (currentWord.size === 0) {
+function updateVectorLine(tiles = [...currentWord], includePointer = true) {
+    if (tiles.length === 0) {
         dragLine.setAttribute("points", "");
         return;
     }
@@ -232,16 +263,84 @@ function updateVectorLine() {
     svgOverlay.setAttribute("height", containerRect.height);
     svgOverlay.setAttribute("viewBox", `0 0 ${containerRect.width} ${containerRect.height}`);
 
-    const points = [...currentWord].map(tile => {
+    const points = tiles.map(tile => {
         const blockRect = tile.element.getBoundingClientRect();
         const centerX = (blockRect.left - containerRect.left) + (blockRect.width / 2);
         const centerY = (blockRect.top - containerRect.top) + (blockRect.height / 2);
         return `${centerX},${centerY}`;
     });
 
-    if (isDragging && pointerPos) {
+    if (includePointer && isDragging && pointerPos) {
         points.push(`${pointerPos.x},${pointerPos.y}`);
     }
 
     dragLine.setAttribute("points", points.join(" "));
+}
+
+function addWordToBook(bookObject) {
+    const wordKey = bookObject.word.toLocaleUpperCase();
+    let entry = wordEntries.get(wordKey);
+    if (!entry) {
+        const p = document.createElement('p');
+        const score = document.createElement('span');
+        const multiplier = document.createElement('span');
+        p.textContent = bookObject.word;
+        p.appendChild(score);
+        p.appendChild(multiplier);
+        wordList.appendChild(p);
+
+        entry = {
+            paths: [],
+            multiplier,
+            score
+        };
+        wordEntries.set(wordKey, entry);
+
+        p.addEventListener('mouseenter', () => showFoundWord(entry));
+        p.addEventListener('mouseleave', clearFoundWord);
+    }
+
+    entry.paths.push(bookObject.letters.map((tile) => tile.index));
+    entry.score.textContent = ` - ${bookObject.score}`;
+    entry.multiplier.textContent = entry.paths.length > 1 ? ` x${entry.paths.length}` : "";
+
+    const totalScore = document.getElementById('totalScore');
+    if (totalScore) totalScore.textContent = String((Number(totalScore.textContent) || 0) + bookObject.score);
+
+    const setsFound = document.getElementById('setsFound');
+    if (setsFound) setsFound.textContent = String((Number(setsFound.textContent) || 0) + 1);
+}
+
+function showFoundWord(entry) {
+    clearFoundWord();
+    let pathIndex = 0;
+    const showPath = () => {
+        previewTiles.forEach((tile) => {
+            tile.element.style.backgroundColor = "var(--no-streak)";
+        });
+        const wordTiles = entry.paths[pathIndex].map((index) => board[index]);
+        wordTiles.forEach((tile) => {
+            tile.element.style.backgroundColor = "rgb(0, 112, 6)";
+        });
+        previewTiles = wordTiles;
+        updateVectorLine(wordTiles, false);
+        pathIndex = (pathIndex + 1) % entry.paths.length;
+    };
+
+    showPath();
+    if (entry.paths.length > 1) {
+        wordPreviewTimer = setInterval(showPath, 700);
+    }
+}
+
+function clearFoundWord() {
+    if (wordPreviewTimer !== null) {
+        clearInterval(wordPreviewTimer);
+        wordPreviewTimer = null;
+    }
+    previewTiles.forEach((tile) => {
+        tile.element.style.backgroundColor = "var(--no-streak)";
+    });
+    previewTiles = [];
+    updateVectorLine([]);
 }

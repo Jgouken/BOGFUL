@@ -23,6 +23,7 @@
             title="Shows you a Set. This will reset your streak.">Complete</button>
         <button class="showrules" id="rules" onclick="showRules()" title="Show The Rules"><i
                 class="fa fa-question"></i></button>
+        <button class="opendrawer" id="openDrawer">Book</button>
     </div>
 
     <div class="centered-streaks" id="streaks">
@@ -31,6 +32,28 @@
     </div>
 
     <div class="block-container" id="block-container"></div>
+
+    <div id="popupOverlay" class="popup-overlay" onclick="closePopup()">
+        <div class="popup-window" onclick="event.stopPropagation();">
+            <button class="popup-close" style="color: white;" onclick="closePopup()">×</button>
+            <div id="popupContent" class="popup-content"></div>
+        </div>
+    </div>
+
+    <span class="output" id="output"></span>
+
+    <dialog id="rightDrawer" class="drawer">
+        <div class="drawer-body">
+            <p style="background-color: transparent; font-size: medium; cursor: default;"><strong>Total Score:</strong> <span id="totalScore">0</span></p>
+            <button id="closeDrawer">&times;</button>
+        </div>
+        <header class="drawer-header">
+            <h2>Found Words</h2>
+            <div id="wordList">
+            </div>
+        </header>
+
+    </dialog>
 
     <template id="block-template">
         <div class="block">
