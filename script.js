@@ -107,27 +107,47 @@ function setLetterBag() {
     });
 }
 
+function startup() {
+    for (let i = 0; i < length * width; i++) {
+        const clone = template.content.cloneNode(true);
+        const item = clone.firstElementChild;
+
+        let randomLetter = letterBag[Math.floor(Math.random() * letterBag.length)];
+        const tile = { ...randomLetter, index: i, element: item };
+
+        item.querySelector('.block-text').textContent = tile.letter;
+        container.appendChild(clone);
+
+        item.addEventListener('pointerdown', (e) => {
+            isDragging = true;
+            updatePointerPos(e);
+            toggleSelection(tile);
+        });
+
+        board.push(tile);
+    }
+}
+
+function reroll() {
+    book.clear()
+    currentWord.clear()
+    board.forEach((tile, index) => {
+        setTimeout(() => {
+            tile.element.style.backgroundColor = "white";
+            setTimeout(() => {
+                const randomLetter = letterBag[Math.floor(Math.random() * letterBag.length)];
+                Object.assign(tile, randomLetter);
+                tile.element.querySelector('.block-text').textContent = tile.letter;
+                tile.element.style.backgroundColor = "var(--no-streak)";
+            }, 200);
+        }, (index + 1) * 100);
+    });
+}
+
+
 loadDictionary();
 setLetterBag();
-
-for (let i = 0; i < length * width; i++) {
-    const clone = template.content.cloneNode(true);
-    const item = clone.firstElementChild;
-
-    let randomLetter = letterBag[Math.floor(Math.random() * letterBag.length)];
-    const tile = { ...randomLetter, index: i, element: item };
-
-    item.querySelector('.block-text').textContent = tile.letter;
-    container.appendChild(clone);
-
-    item.addEventListener('pointerdown', (e) => {
-        isDragging = true;
-        updatePointerPos(e);
-        toggleSelection(tile);
-    });
-
-    board.push(tile);
-}
+startup();
 
 container.appendChild(svgOverlay);
 
