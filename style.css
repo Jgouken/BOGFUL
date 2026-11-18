@@ -22,17 +22,22 @@ dialog::backdrop {
     touch-action: none;
     user-select: none;
     background-color: var(--dark-cell-bg);
-    max-height: 80vh;
-    max-width: 80vh;
+    box-sizing: border-box;
+    width: min(80vw, 80vh);
+    aspect-ratio: 1;
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 40px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-rows: repeat(4, minmax(0, 1fr));
+    gap: clamp(4px, 4vmin, 40px);
     margin: 20px auto;
     border-radius: 16px;
-    padding: 40px;
+    padding: clamp(8px, 4vmin, 40px);
 }
 
 .block {
+    box-sizing: border-box;
+    min-width: 0;
+    min-height: 0;
     background-color: var(--no-streak);
     color: white;
     font-family: sans-serif;
@@ -326,5 +331,37 @@ dialog::backdrop {
 @starting-style {
     .drawer[open] {
         transform: translateX(100%);
+    }
+}
+
+@media (orientation: landscape) and (max-height: 600px) and (max-width: 960px) {
+    .centered-buttons {
+        position: fixed;
+        left: max(8px, 2vw);
+        top: 50%;
+        transform: translateY(-50%);
+        width: min(34vw, 260px);
+        max-height: calc(100dvh - 16px);
+        box-sizing: border-box;
+        overflow-y: auto;
+        gap: clamp(4px, 1.5vmin, 12px);
+        margin: 0;
+        padding: 8px 0;
+    }
+
+    .word-display {
+        box-sizing: border-box;
+        width: 100%;
+        min-width: 0;
+        font-size: clamp(1rem, 3vh, 1.5rem);
+    }
+
+    .block-container {
+        position: fixed;
+        top: 50%;
+        right: max(8px, 2vw);
+        transform: translateY(-50%);
+        width: min(80vh, 58vw);
+        margin: 0;
     }
 }

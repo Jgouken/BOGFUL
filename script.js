@@ -121,19 +121,9 @@ for (let i = 0; i < length * width; i++) {
     container.appendChild(clone);
 
     item.addEventListener('pointerdown', (e) => {
-        if (item.hasPointerCapture(e.pointerId)) {
-            item.releasePointerCapture(e.pointerId);
-        }
         isDragging = true;
         updatePointerPos(e);
         toggleSelection(tile);
-    });
-
-    item.addEventListener('pointerenter', (e) => {
-        let lastTile = [...currentWord].at(-1);
-        if (isDragging && isAdjacent(tile, lastTile)) {
-            toggleSelection(tile);
-        }
     });
 
     board.push(tile);
@@ -241,6 +231,13 @@ function updateBorders() {
 window.addEventListener('pointermove', (e) => {
     if (!isDragging) return;
     updatePointerPos(e);
+    const element = document.elementFromPoint(e.clientX, e.clientY);
+    const block = element?.closest('.block');
+    const tile = board.find(tile => tile.element === block);
+    const lastTile = [...currentWord].at(-1);
+    if (tile && isAdjacent(tile, lastTile)) {
+        toggleSelection(tile);
+    }
     updateVectorLine();
 });
 
