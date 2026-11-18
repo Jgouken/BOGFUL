@@ -334,34 +334,28 @@ dialog::backdrop {
     }
 }
 
-@media (orientation: landscape) and (max-height: 600px) and (max-width: 960px) {
+
+@media only screen and (max-width: 767px) and (orientation: portrait) {
     .centered-buttons {
-        position: fixed;
-        left: max(8px, 2vw);
-        top: 50%;
-        transform: translateY(-50%);
-        width: min(34vw, 260px);
-        max-height: calc(100dvh - 16px);
-        box-sizing: border-box;
-        overflow-y: auto;
-        gap: clamp(4px, 1.5vmin, 12px);
-        margin: 0;
-        padding: 8px 0;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
     }
 
     .word-display {
-        box-sizing: border-box;
+        order: 1;
+        
         width: 100%;
-        min-width: 0;
-        font-size: clamp(1rem, 3vh, 1.5rem);
+        box-sizing: border-box; 
+        min-width: 0; 
+        text-align: center;
     }
 
-    .block-container {
-        position: fixed;
-        top: 50%;
-        right: max(8px, 2vw);
-        transform: translateY(-50%);
-        width: min(80vh, 58vw);
-        margin: 0;
-    }
+    .redraw { order: 2; }
+    .find-set { order: 3; }
+    .opendrawer { order: 4; }
+    .showrules { order: 5; }
+    .darkmode { order: 6; }
+    .mutemode { order: 7; }
 }
