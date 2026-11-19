@@ -51,6 +51,8 @@ dialog::backdrop {
     -ms-user-select: none;
     user-select: none;
     cursor: pointer;
+    font-size: clamp(1rem, 10cqi, 4rem);
+    white-space: nowrap;
     transition: all 0.25s;
 }
 
@@ -328,6 +330,38 @@ dialog::backdrop {
     transform: translateX(0);
 }
 
+@keyframes flipInYReverse {
+    from {
+        transform: perspective(400px) rotate3d(0, 1, 0, -90deg);
+        animation-timing-function: ease-in;
+        opacity: 0;
+    }
+
+    40% {
+        transform: perspective(400px) rotate3d(0, 1, 0, 20deg);
+        animation-timing-function: ease-in;
+    }
+
+    60% {
+        transform: perspective(400px) rotate3d(0, 1, 0, -10deg);
+        opacity: 1;
+    }
+
+    80% {
+        transform: perspective(400px) rotate3d(0, 1, 0, 5deg);
+    }
+
+    to {
+        transform: perspective(400px);
+    }
+}
+
+.animate__flipInYReverse {
+    backface-visibility: visible !important;
+    animation-name: flipInYReverse;
+}
+
+
 @starting-style {
     .drawer[open] {
         transform: translateX(100%);
@@ -345,17 +379,34 @@ dialog::backdrop {
 
     .word-display {
         order: 1;
-        
+
         width: 100%;
-        box-sizing: border-box; 
-        min-width: 0; 
+        box-sizing: border-box;
+        min-width: 0;
         text-align: center;
     }
 
-    .reroll { order: 2; }
-    .find-set { order: 3; }
-    .opendrawer { order: 4; }
-    .showrules { order: 5; }
-    .darkmode { order: 6; }
-    .mutemode { order: 7; }
+    .reroll {
+        order: 2;
+    }
+
+    .find-set {
+        order: 3;
+    }
+
+    .opendrawer {
+        order: 4;
+    }
+
+    .showrules {
+        order: 5;
+    }
+
+    .darkmode {
+        order: 6;
+    }
+
+    .mutemode {
+        order: 7;
+    }
 }

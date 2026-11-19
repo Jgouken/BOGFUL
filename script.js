@@ -89,11 +89,11 @@ var wordEntries = new Map();
 var wordPreviewTimer = null;
 var previewTiles = [];
 var board = [];
+let selection_animation = "none"
 
 async function loadDictionary() {
     const response = await fetch('./words.txt');
     const text = await response.text();
-
     const words = text.split(/\r?\n/);
     wordSet = new Set(words.map(w => w.trim().toLowerCase()).filter(Boolean));
 }
@@ -108,11 +108,12 @@ function setLetterBag() {
 }
 
 function startup() {
+    setLetterBag();
     for (let i = 0; i < length * width; i++) {
         const clone = template.content.cloneNode(true);
         const item = clone.firstElementChild;
 
-        let randomLetter = letterBag[Math.floor(Math.random() * letterBag.length)];
+        let randomLetter = drawTile();
         const tile = { ...randomLetter, index: i, element: item };
 
         item.querySelector('.block-text').textContent = tile.letter;
@@ -128,22 +129,46 @@ function startup() {
     }
 }
 
-function reroll() {
-    book.clear()
-    currentWord.clear()
-    board.forEach((tile, index) => {
-        setTimeout(() => {
-            tile.element.style.backgroundColor = "white";
-            setTimeout(() => {
-                const randomLetter = letterBag[Math.floor(Math.random() * letterBag.length)];
-                Object.assign(tile, randomLetter);
-                tile.element.querySelector('.block-text').textContent = tile.letter;
-                tile.element.style.backgroundColor = "var(--no-streak)";
-            }, 200);
-        }, (index + 1) * 100);
-    });
+function drawTile() {
+    if (letterBag.length === 0) setLetterBag();
+    const randomIndex = Math.floor(Math.random() * letterBag.length);
+    const [drawnLetter] = letterBag.splice(randomIndex, 1);
+    return drawnLetter;
 }
 
+
+function reroll() {
+    const animationOut = "animate__flipOutY";
+    const animationIn = "animate__flipInYReverse";
+    book.clear();
+    currentWord.clear();
+    setLetterBag();
+
+    board.forEach((tile, index) => {
+        const drawnLetter = drawTile();
+
+        setTimeout(() => {
+            tile.element.style.setProperty('--animate-duration', '0.35s');
+            tile.element.classList.add(animationOut);
+
+            tile.element.addEventListener('animationend', () => {
+                tile.element.classList.remove(animationOut);
+                
+                Object.assign(tile, drawnLetter);
+                tile.element.querySelector('.block-text').textContent = tile.letter;
+                
+                tile.element.classList.add(animationIn);
+
+                tile.element.addEventListener('animationend', () => {
+                    tile.element.classList.remove(animationIn);
+                    tile.element.style.removeProperty('--animate-duration');
+                }, { once: true });
+
+            }, { once: true });
+
+        }, index * 50);
+    });
+}
 
 loadDictionary();
 setLetterBag();
@@ -161,6 +186,7 @@ window.addEventListener('pointerup', () => {
         clearSelection();
         return;
     }
+
     submitWord(word);
 });
 
@@ -170,9 +196,11 @@ function toggleSelection(tile) {
         let lastTile = [...currentWord].at(-1);
         if (secondLastTile === tile) {
             currentWord.delete(lastTile);
+            lastTile.element.classList.remove(selection_animation, 'animate__infinite')
         }
     } else {
         currentWord.add(tile);
+        tile.element.classList.add(selection_animation, 'animate__infinite')
     }
 
     let word = [...currentWord].map(block => block.letter).join(' ').toLocaleUpperCase();
@@ -235,6 +263,7 @@ function clearSelection() {
     setTimeout(() => {
         board.forEach(tile => {
             tile.element.style.backgroundColor = "var(--no-streak)";
+            tile.element.classList.remove(selection_animation, 'animate__infinite')
         });
     }, 250)
     currentWord.clear();

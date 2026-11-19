@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <link rel="stylesheet" type="text/css" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
     <script src="script.js" defer></script>
     <title>BOGFUL</title>
 </head>
@@ -46,7 +47,8 @@
     <dialog id="rightDrawer" class="drawer">
         <div class="drawer-body">
             <p style="background-color: transparent; font-size: medium; cursor: default;"><strong>Total Score:</strong>
-                <span id="totalScore">0</span></p>
+                <span id="totalScore">0</span>
+            </p>
             <button id="closeDrawer">&times;</button>
         </div>
         <header class="drawer-header">
@@ -58,7 +60,7 @@
     </dialog>
 
     <template id="block-template">
-        <div class="block">
+        <div class="block animate__animated">
             <p class="block-text"></p>
         </div>
     </template>
